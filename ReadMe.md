@@ -12,6 +12,10 @@ edittype..
 
 esc
 
+uso sin \ y sin :
+
+ctrl-a ctrl-c ctrl-v
+
 currencysymbol, decimales
 
 validacion onchange y cancelacion con undo (como cosa interna a destacar)
