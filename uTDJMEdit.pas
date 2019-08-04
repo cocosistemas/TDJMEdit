@@ -228,11 +228,6 @@ begin
   FShowSecondsInTime := False;
   FValueDate := 0; //para crearlos con fecha nula :) 18/01/99
   FValueTime := Time;
-  //CharCase            := ecUpperCase;
-  AutoSelect := true;
-  //ctl3d               := false;
-  //cursor:=crUpArrow;
-  //borderstyle:=bsNone;
 end;
 
 procedure TDJMEdit.CreateCalendarWindow;
@@ -459,18 +454,24 @@ var
 i : Integer;
 sAux:string;
 begin
-   sAux:='';
-   //quitamos todo lo q no sea digitos, -, etc
-   for i := 1 to Length(s) do begin
-       if CharInSet(Text[i],['0'..'9', FormatSettings.DecimalSeparator, '-']) then begin
-          sAux := sAux + Text[i];
-       end;
+   if EditType=etString then begin
+      Result:=s;
+   end
+   else begin
+        sAux:='';
+        //quitamos todo lo q no sea digitos, -, etc
+        for i := 1 to Length(s) do begin
+            if CharInSet(Text[i],['0'..'9', FormatSettings.DecimalSeparator, '-']) then begin
+               sAux := sAux + Text[i];
+            end;
+        end;
+        result := sAux;
    end;
-   result := sAux;
 end;
 
 procedure TDJMEdit.DoEnter;
 begin
+
   sTextAtEnter := Text;
 
   //quitamos formato
