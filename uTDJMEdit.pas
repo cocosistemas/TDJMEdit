@@ -3,8 +3,7 @@ unit uTDJMEdit;
 interface
 
 uses
-  {$IFDEF WIN32}  Windows, {$ELSE}Winprocs, {$ENDIF}
-  Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls,
+  Windows,  Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls,
   extctrls, Vcl.ComCtrls, buttons;
 
 type
