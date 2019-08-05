@@ -262,7 +262,7 @@ btCancelar := TButton.Create(oCalendarForm);
     Top := 0;
     Width := 733;
     Height := 461;
-    Date := 36154.759118599540000000;
+    Date := date;
     MaxSelectRange := 0;
     ParentFont := False;
     TabOrder := 0;
@@ -633,6 +633,7 @@ var
   Temp, vDate, vMonth, vYear: string;
   dDate: TDateTime;
   ilength: Integer;
+  myFormatSettings:TFormatSettings;
 begin
   Temp := '';
   { TODO : poner datetimeformat como propidad, dd/mm/yyyy }
@@ -667,24 +668,30 @@ begin
     8, 9, 10:
       Temp := Copy(Temp, 1, 2) + sDateSeparator + Copy(Temp, 3, 2) + sDateSeparator + Copy(Temp, 5, 4);
   end;
-  try
-    dDate := udat_StrToDate(Temp);
-  except
-  //MODIF 18/01/1999
-    if lConAviso then
-      ShowMessage('Fecha incorrecta');
-    FValueDate := 0;  //Si la fecha es incorrecta, la dejamos a cero
-    FValueFloat := 0;
-    FValueInteger := 0;
-  //text         := udat_datetostr(valuedate);
-    setfocus;
-    Exit;
+
+  //validamos la fecha
+  if Trim(text)<>'' then begin
+      myFormatSettings.ShortDateFormat:='dd/mm/yyyy';
+      myFormatSettings.DateSeparator:='/';
+      if not TryStrToDate(Temp, dDate, myFormatSettings) then begin
+        if lConAviso then begin //esto es porque las fechas son incorrectas hasta q terminamos de teclearlas
+           beep;
+           self.Undo;
+        end;
+        FValueDate := 0;
+        FValueFloat := 0;
+        FValueInteger := 0;
+        setfocus;
+        Exit;
+      end;
   end;
-  if lCambiaTexto then
-    Text := Temp;
+  if lCambiaTexto then begin
+     Text := Temp;
+  end;
   FValueDate := udat_StrToDate(Temp);
   FValueFloat := FValueDate;
   FValueInteger := Trunc(FValueDate);
+  Self.ClearUndo;
 end;
 
 function TDJMEdit.FormatStr(sValue: string; iMinimoDecimales: Integer): string;
