@@ -53,9 +53,6 @@ type
     /// </summary>
     FShowSecondsInTime: Boolean;
 
-    { TODO : añadir propiedad thousandSeparator }
-
-
     FValueDate: TDateTime;
     FValueTime: TDateTime;
     FValueInteger: Integer;
@@ -72,9 +69,10 @@ type
     sTextAtEnter: string;
 
     //separadores. No los publicamos, pero lo dejamos preparado
-    sDecimalSeparator: Char;
-    sDateSeparator: Char;
-    sTimeSeparator: Char;
+    FThousandSeparator: Char;
+    FDecimalSeparator: Char;
+    FDateSeparator: Char;
+    FTimeSeparator: Char;
 
     //las cosas de la ventana de selección del calendario
     oCalendarForm:TForm;
@@ -93,6 +91,8 @@ type
     procedure FormCalendarBTAceptarClick(Sender: TObject);
     procedure FormCalendarbtCancelarClick(Sender: TObject);
     procedure SetCurrencySymbol(const Value: char);
+    procedure SetDecimalSeparator(const Value: char);
+    procedure SetThousandSeparator(const Value: char);
     function ValidateNumbers(var sError:string):boolean;
 
   protected
@@ -131,7 +131,7 @@ type
     /// para etDate, dice si es una fecha nula, vacia
     /// </summary>
     function isEmpty: Boolean;
-    function FormatStr(sValue: string; iMinimoDecimales: Integer = 0): string;
+    function MyFormatFloat(sValue: string; iMinimoDecimales: Integer = 0): string;
   published
     property OnEnter: TNotifyEvent read FOnEnter write FOnEnter;
     property OnExit: TNotifyEvent read FOnExit write FOnExit;
@@ -148,6 +148,8 @@ type
     property ValueTime: TDateTime read FValueTime write FValueTime;
     property TimeSeconds: Boolean read FShowSecondsInTime write FShowSecondsInTime;
     property NumbersAlignedRight : boolean read FNumbersAlignRight write FNumbersAlignRight;
+    property DecimalSeparator : char read FDecimalSeparator write SetDecimalSeparator;
+    property ThousandSeparator : char read FThousandSeparator write SetThousandSeparator;
     property CurrencySymbol : char read FCurrencySymbol write SetCurrencySymbol;
     property Decimals : integer read FDecimals write setDecimals;
   end;
@@ -158,14 +160,24 @@ implementation
 
 procedure TDJMEdit.SetCurrencySymbol(const Value: char);
 begin
-  {
-  if (EditType = etFloat) or (EditType = etFloatRounded) or (EditType = etFloatRoundedEx) then begin
-     //hay q quitar el simbolo actual, antes de asignarle el nuevo
-     text:=DeleteFormat(text);
-  end;
-  }
   FCurrencySymbol := Value;
   if (EditType = etFloat) or (EditType = etFloatRounded) or (EditType = etFloatRoundedEx) then begin
+     FormatNumber;
+  end;
+end;
+
+procedure TDJMEdit.SetDecimalSeparator(const Value: char);
+begin
+  FDecimalSeparator := Value;
+  if (EditType = etFloat) or (EditType = etFloatRounded) or (EditType = etFloatRoundedEx) then begin
+     FormatNumber;
+  end;
+end;
+
+procedure TDJMEdit.SetThousandSeparator(const Value: char);
+begin
+  FThousandSeparator := Value;
+  if (EditType = etInteger) or (EditType = etFloat) or (EditType = etFloatRounded) or (EditType = etFloatRoundedEx) then begin
      FormatNumber;
   end;
 end;
@@ -221,12 +233,15 @@ begin
   FKeyTab := #13;        //#9
   FValueInteger := 0;
   FValueFloat := 0;
-  sDecimalSeparator := FormatSettings.DecimalSeparator;
   sTextAtEnter := '';
-  sDateSeparator := FormatSettings.DateSeparator;
-  sTimeSeparator := FormatSettings.TimeSeparator;
+
+  FDecimalSeparator := FormatSettings.DecimalSeparator;
+  FThousandSeparator := FormatSettings.ThousandSeparator;
+  FDateSeparator := FormatSettings.DateSeparator;
+  FTimeSeparator := FormatSettings.TimeSeparator;
+
   FShowSecondsInTime := False;
-  FValueDate := 0; //para crearlos con fecha nula :) 18/01/99
+  FValueDate := 0;
   FValueTime := Time;
 end;
 
@@ -424,17 +439,17 @@ begin
           end;
 
         etFloat, etFloatRounded, etFloatRoundedEx: begin
-            if (not (CharInSet(Key,['0'..'9', ',', '.', '-', #8, #13]))) or
+            if (not (CharInSet(Key,['0'..'9', FThousandSeparator, FDecimalSeparator, '-', #8, #13]))) or
                (Key = #32) or ((Key = '-') and (Pos('-', Text) > 0)) then begin
                Key := #15;
             end;
 
-            //pasamos el , o el . a lo q esté puesto en formatsettings
-            if (Key = ',') or (Key = '.') then begin
-              if (Pos(',', Text) > 0) or (Pos('.', Text) > 0) then
+            //pasamos el , o el . a decimal separator
+            if (Key = FDecimalSeparator) or (Key = FThousandSeparator) then begin
+              if (Pos(FDecimalSeparator, Text) > 0) or (Pos(FDecimalSeparator, Text) > 0) then
                 Key := #15
               else
-                Key := FormatSettings.DecimalSeparator;
+                Key := FDecimalSeparator;
             end;
           end;
 
@@ -461,7 +476,7 @@ begin
         sAux:='';
         //quitamos todo lo q no sea digitos, -, etc
         for i := 1 to Length(s) do begin
-            if CharInSet(Text[i],['0'..'9', FormatSettings.DecimalSeparator, '-']) then begin
+            if CharInSet(Text[i],['0'..'9', FDecimalSeparator, '-']) then begin
                sAux := sAux + Text[i];
             end;
         end;
@@ -541,19 +556,23 @@ end;
 end;
 
 procedure TDJMEdit.FormatNumber;
+var
+myFormatSettings:TFormatSettings;
 begin
   if (EditType = etfloat) or (EditType = etFloatRounded) or (EditType = etFloatRoundedEx) then begin
     if trim(text) <> '' then begin
         try
           Text:=DeleteFormat(Text);
           if (EditType = etFloat) then begin
-             Text:=FormatStr(text);
+             Text:=MyFormatFloat(text);
           end;
           if (EditType = etFloatRoundedEx) then begin
-             Text:=FormatStr(text, FDecimals);
+             Text:=MyFormatFloat(text, FDecimals);
           end;
           if (EditType = etFloatRounded) then begin
-             Text:=format('%0.'+trim(inttostr(FDecimals))+'n',[StrToFloat(text)]);
+             myFormatSettings.DecimalSeparator:=FDecimalSeparator;
+             myFormatSettings.ThousandSeparator:=FThousandSeparator;
+             Text:=format('%0.'+trim(inttostr(FDecimals))+'n',[StrToFloat(text)], myFormatSettings);
           end;
         except
         end;
@@ -574,7 +593,7 @@ begin
   if (edittype = etInteger) then begin
     if trim(text) <> '' then begin
       try
-        text := FormatStr(text);
+        text := MyFormatFloat(text);
       except
       end;
     end
@@ -616,13 +635,17 @@ begin
 end;
 
 procedure TDJMEdit.SetFloat(VFloat: double);
+var
+myFormatSettings:TFormatSettings;
 begin
   if (EditType = etFloat) or (EditType = etFloatRounded) or
      (EditType = etFloatRoundedEx) then begin
     Fvaluefloat := VFloat;
     //OJO! el floattostr corta a 15 caracteres, q es la máxima precisión del tipo double
     //0.1234567890123456789 lo deja como 0.123456789012346
-    Text:=FloatToStr(FValueFloat) ;
+    myFormatSettings.DecimalSeparator:=FDecimalSeparator;
+    myFormatSettings.ThousandSeparator:=FThousandSeparator;
+    Text:=FloatToStr(FValueFloat, myFormatSettings) ;
     //Text:=Format('%0.15n',[VFloat]); //esto hace que 12,123 lo deje como 12,129999999
     FormatNumber;
   end;
@@ -637,7 +660,7 @@ var
 begin
   Temp := '';
   { TODO : poner datetimeformat como propidad, dd/mm/yyyy }
-  vDate := FormatDateTime('dd' + sDateSeparator + 'mm' + sDateSeparator + 'yyyy', Date);
+  vDate := FormatDateTime('dd' + FDateSeparator+ 'mm' + FDateSeparator+ 'yyyy', Date);
   vMonth := Copy(vDate, 4, 2);
   vYear := Copy(vDate, 7, 4);
  // Quitar separador de fecha si existe
@@ -652,27 +675,27 @@ begin
     0:
       Temp := '';
     1:
-      Temp := '0' + Temp[1] + sDateSeparator + vMonth + sDateSeparator + vYear;
+      Temp := '0' + Temp[1] + FDateSeparator+ vMonth + FDateSeparator+ vYear;
     2:
-      Temp := Temp + sDateSeparator + vMonth + sDateSeparator + vYear;
+      Temp := Temp + FDateSeparator+ vMonth + FDateSeparator+ vYear;
     3:
-      Temp := Copy(Temp, 1, 2) + sDateSeparator + '0' + Temp[3] + sDateSeparator + vYear;
+      Temp := Copy(Temp, 1, 2) + FDateSeparator+ '0' + Temp[3] + FDateSeparator+ vYear;
     4:
-      Temp := Copy(Temp, 1, 2) + sDateSeparator + Copy(Temp, 3, 2) + sDateSeparator + vYear;
+      Temp := Copy(Temp, 1, 2) + FDateSeparator+ Copy(Temp, 3, 2) + FDateSeparator+ vYear;
     5:
-      Temp := Copy(Temp, 1, 2) + sDateSeparator + Copy(Temp, 3, 2) + sDateSeparator + Copy(vYear, 1, 3) + Temp[5];
+      Temp := Copy(Temp, 1, 2) + FDateSeparator+ Copy(Temp, 3, 2) + FDateSeparator+ Copy(vYear, 1, 3) + Temp[5];
     6:
-      Temp := Copy(Temp, 1, 2) + sDateSeparator + Copy(Temp, 3, 2) + sDateSeparator + Copy(vYear, 1, 2) + Copy(Temp, 5, 2);
+      Temp := Copy(Temp, 1, 2) + FDateSeparator+ Copy(Temp, 3, 2) + FDateSeparator+ Copy(vYear, 1, 2) + Copy(Temp, 5, 2);
     7:
-      Temp := Copy(Temp, 1, 2) + sDateSeparator + Copy(Temp, 3, 2) + sDateSeparator + vYear[1] + Copy(Temp, 5, 3);
+      Temp := Copy(Temp, 1, 2) + FDateSeparator+ Copy(Temp, 3, 2) + FDateSeparator+ vYear[1] + Copy(Temp, 5, 3);
     8, 9, 10:
-      Temp := Copy(Temp, 1, 2) + sDateSeparator + Copy(Temp, 3, 2) + sDateSeparator + Copy(Temp, 5, 4);
+      Temp := Copy(Temp, 1, 2) + FDateSeparator+ Copy(Temp, 3, 2) + FDateSeparator+ Copy(Temp, 5, 4);
   end;
 
   //validamos la fecha
   if Trim(text)<>'' then begin
-      myFormatSettings.ShortDateFormat:='dd/mm/yyyy';
-      myFormatSettings.DateSeparator:='/';
+      myFormatSettings.ShortDateFormat:='dd'+FDateSeparator+'mm'+FDateSeparator+'yyyy';
+      myFormatSettings.DateSeparator:=FDateSeparator;
       if not TryStrToDate(Temp, dDate, myFormatSettings) then begin
         if lConAviso then begin //esto es porque las fechas son incorrectas hasta q terminamos de teclearlas
            beep;
@@ -694,7 +717,7 @@ begin
   Self.ClearUndo;
 end;
 
-function TDJMEdit.FormatStr(sValue: string; iMinimoDecimales: Integer): string;
+function TDJMEdit.MyFormatFloat(sValue: string; iMinimoDecimales: Integer): string;
 var
   sAux: string;
   i: integer;
@@ -716,11 +739,11 @@ begin
       sOut := '0';
     end
     else begin
-      lDec := (pos(',', sAux) <> 0);
+      lDec := (pos(FDecimalSeparator, sAux) <> 0);
       iCuantos := 0;
       //DE DERECHA A IZQUIERDA, vamos añadiendo los signos de puntuacion
       for i := length(sAux) downto 1 do begin
-        if sAux[i] = FormatSettings.DecimalSeparator then begin
+        if sAux[i] = FDecimalSeparator then begin
           //ya no hay decimales
           lDec := false;
           //Completamos decimales con cero hasta el minimo
@@ -736,7 +759,7 @@ begin
         sOut := sAux[i] + sOut;
         if (iCuantos = 3) and (i <> 1) then begin
           iCuantos := 0;
-          sOut := FormatSettings.ThousandSeparator + sOut;
+          sOut := FThousandSeparator + sOut;
         end;
       end;
     end;
@@ -744,7 +767,7 @@ begin
 //el caso especial -,123456
 if trim(sOut) <> '' then begin
   if length(sOut) > 2 then begin
-    if (sOut[1] = '-') and (sOut[2] = formatsettings.DecimalSeparator) then
+    if (sOut[1] = '-') and (sOut[2] = FDecimalSeparator) then
       delete(sOut, 2, 1);
   end;
 end;
@@ -752,14 +775,14 @@ end;
 //el caso especial .123
 if trim(sOut) <> '' then begin
   if length(sOut) > 1 then begin
-    if (sOut[1] = formatsettings.DecimalSeparator) then
+    if (sOut[1] = FDecimalSeparator) then
       sOut:='0'+sOut;
   end;
 end;
 
 //no tiene decimales y nos los han pedido
-if (Pos(',', sOut) = 0) and (iMinimoDecimales <> 0) then begin
-  sOut := sOut + FormatSettings.DecimalSeparator;
+if (Pos(FDecimalSeparator, sOut) = 0) and (iMinimoDecimales <> 0) then begin
+  sOut := sOut + FDecimalSeparator;
   for iAux2 := 1 to iMinimoDecimales do begin
     sOut := sOut + '0';
   end;
@@ -772,6 +795,7 @@ var
   TxtConvert: string;
   mDummy: Double;
   iDummy: Integer;
+  myFormatSettings:TFormatSettings;
 begin
   //OutputDebugString('OnChange');
   Result:=True;  sError:='';
@@ -823,7 +847,9 @@ begin
     end;
     if (EditType = etFloat) or (EditType = etFloatRounded) or (EditType = etFloatRoundedEx) then
     begin
-      if not TryStrToFloat(TxtConvert, mDummy) then
+      myFormatSettings.DecimalSeparator:=FDecimalSeparator;
+      myFormatSettings.ThousandSeparator:=FThousandSeparator;
+      if not TryStrToFloat(TxtConvert, mDummy, myFormatSettings) then
       begin
         Result:=False;
         sError:='Número incorrecto';
@@ -847,8 +873,8 @@ var
   iLength: Integer;
 begin
   Temp := '';
-  MskTime := '00' + sTimeSeparator + '00' + sTimeSeparator + '00';
-  vTime := FormatDateTime('hh:mm:ss', Time);
+  MskTime := '00' + FTimeSeparator + '00' + FTimeSeparator + '00';
+  vTime := FormatDateTime('hh'+FTimeSeparator+'mm'+FTimeSeparator+'ss', Time);
   vMin := Copy(vTime, 4, 2);
   vSec := Copy(vTime, 7, 2);
 
@@ -871,13 +897,13 @@ begin
       2:
         Temp := Temp + Copy(MskTime, 3, 6);
       3:
-        Temp := Copy(Temp, 1, 2) + sTimeSeparator + '0' + Temp[3] + Copy(MskTime, 6, 3);
+        Temp := Copy(Temp, 1, 2) + FTimeSeparator + '0' + Temp[3] + Copy(MskTime, 6, 3);
       4:
-        Temp := Copy(Temp, 1, 2) + sTimeSeparator + Copy(Temp, 3, 2) + Copy(MskTime, 6, 3);
+        Temp := Copy(Temp, 1, 2) + FTimeSeparator + Copy(Temp, 3, 2) + Copy(MskTime, 6, 3);
       5:
-        Temp := Copy(Temp, 1, 2) + sTimeSeparator + Copy(Temp, 3, 2) + sTimeSeparator + '0' + Temp[5];
+        Temp := Copy(Temp, 1, 2) + FTimeSeparator + Copy(Temp, 3, 2) + FTimeSeparator + '0' + Temp[5];
       6, 7, 8:
-        Temp := Copy(Temp, 1, 2) + sTimeSeparator + Copy(Temp, 3, 2) + sTimeSeparator + Copy(Temp, 5, 2);
+        Temp := Copy(Temp, 1, 2) + FTimeSeparator + Copy(Temp, 3, 2) + FTimeSeparator + Copy(Temp, 5, 2);
     end;
   end
   else begin // Sin segundos
@@ -889,9 +915,9 @@ begin
       2:
         Temp := Temp + Copy(MskTime, 3, 3);
       3:
-        Temp := Copy(Temp, 1, 2) + sTimeSeparator + '0' + Temp[3];
+        Temp := Copy(Temp, 1, 2) + FTimeSeparator + '0' + Temp[3];
       4, 5:
-        Temp := Copy(Temp, 1, 2) + sTimeSeparator + Copy(Temp, 3, 2);
+        Temp := Copy(Temp, 1, 2) + FTimeSeparator + Copy(Temp, 3, 2);
     end;
   end;
  //DJM 05/11/2003, si en blanco, no ponemos tiempo por defecto
