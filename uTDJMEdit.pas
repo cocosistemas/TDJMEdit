@@ -132,6 +132,7 @@ type
     /// </summary>
     function isEmpty: Boolean;
     function MyFormatFloat(sValue: string; iMinimoDecimales: Integer = 0): string;
+    procedure Clear; override;
   published
     property OnEnter: TNotifyEvent read FOnEnter write FOnEnter;
     property OnExit: TNotifyEvent read FOnExit write FOnExit;
@@ -212,6 +213,22 @@ begin
 //y podemos cambiar el tipoedit sin cambiar el readonly
   if FEditType = etDate then
     hint := '';
+end;
+
+procedure TDJMEdit.Clear;
+begin
+  inherited;
+  if (edittype in [etInteger,etFloat,etFloatRounded, etFloatRoundedEx]) then begin
+     ValueFloat:=0;
+     ValueInteger:=0;
+     FormatNumber;
+  end;
+  if (EditType = etDate) then begin
+     ValueDate:=0;
+  end;
+  if (EditType = etTime) then begin
+     ValueTime:=0;
+  end;
 end;
 
 constructor TDJMEdit.Create(AOwner: TComponent);
@@ -659,7 +676,6 @@ var
   myFormatSettings:TFormatSettings;
 begin
   Temp := '';
-  { TODO : poner datetimeformat como propidad, dd/mm/yyyy }
   vDate := FormatDateTime('dd' + FDateSeparator+ 'mm' + FDateSeparator+ 'yyyy', Date);
   vMonth := Copy(vDate, 4, 2);
   vYear := Copy(vDate, 7, 4);
@@ -670,6 +686,7 @@ begin
          Temp := Temp + Text[ilength];
       end;
  // Completar la fecha con separadores
+ { TODO : permitir formato ddmmyyyy y mmddyyyy }
   ilength := Length(Temp);
   case ilength of
     0:
