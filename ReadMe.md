@@ -108,3 +108,6 @@ El símbolo *de moneda*. Se puede dejar en blanco y entonces no se utilizará.
 # personalizar
 
 En el caso de que los colores no sean de tu gusto, los separadores... etc, no vayas modificando cada uno de los TDJMEdit de tu proyecto, pueden llegar a ser muchos. Te aconsejo que te hagas tu propio componente, heredado de este, y en el constructor le pongas tu personalización. Creo que esa es la forma correcta de hacerlo.
+
+> por favor, si vas a modificar algo, hazme un pull request, no es necesario que hagas un fork. Si puedo incorporar tus sugerencias, lo haré. Y para los bugs, abres un issue :)
+
