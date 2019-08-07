@@ -21,6 +21,8 @@ type
 
      //como etFloatRounded pero si el nº tiene más decimales, no lo corta
      //útil para mostrar posibles valores mal grabados en la BD, por ejemplo
+	 //nº = 1234,123713279123, decimals = 3 -> 1234,123713279123
+     //nº = 1234,12,           decimals = 3 -> 1234,120
                 etFloatRoundedEx,
 
                 etDate, etTime);
