@@ -139,7 +139,7 @@ type
     property OnEnter: TNotifyEvent read FOnEnter write FOnEnter;
     property OnExit: TNotifyEvent read FOnExit write FOnExit;
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
-    property NewColorOnFocus: TColor read FColorOnFocus write FColorOnFocus;
+    property ColorOnFocus: TColor read FColorOnFocus write FColorOnFocus;
     property ColorOnNotFocus: TColor read FColorOnNotFocus write FColorOnNotFocus;
     property FontColorOnFocus: TColor read FFontColorOnFocus write FFontColorOnFocus;
     property FontColorOnNotFocus: TColor read FFontColorOnNotFocus write FFontColorOnNotFocus;
@@ -240,7 +240,7 @@ end;
 constructor TDJMEdit.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  NewColorOnFocus := clSkyBlue; //$00FF8000;
+  ColorOnFocus := clSkyBlue; //$00FF8000;
   ColorOnNotFocus := clWhite;
   Color := clWhite;
   FontColorOnFocus := clBlack; //clWhite;
@@ -514,7 +514,7 @@ begin
   //quitamos formato
   Text:=DeleteFormat(text);
 
-  Color := NewColorOnFocus;
+  Color := ColorOnFocus;
   Font.Color := FontColorOnFocus;
 
   if EditType = etDate then
