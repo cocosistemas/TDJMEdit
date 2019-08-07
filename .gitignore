@@ -6,3 +6,4 @@ TestDJMEditBerlin.dproj.local
 *.local
 TestBerlin/__history/*
 *.dcu
+*.stat
