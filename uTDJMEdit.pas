@@ -155,6 +155,10 @@ type
     property Decimals : integer read FDecimals write setDecimals;
   end;
 
+const
+DJMEditTypeFloats : set of TDJMEditTypes = [etFloat,etFloatRounded, etFloatRoundedEx];
+DJMEditTypeNumbers : set of TDJMEditTypes = [etInteger,etFloat,etFloatRounded, etFloatRoundedEx];
+
 procedure Register;
 
 implementation
@@ -162,7 +166,7 @@ implementation
 procedure TDJMEdit.SetCurrencySymbol(const Value: char);
 begin
   FCurrencySymbol := Value;
-  if (EditType = etFloat) or (EditType = etFloatRounded) or (EditType = etFloatRoundedEx) then begin
+  if (edittype in DJMEditTypeFloats) then begin
      FormatNumber;
   end;
 end;
@@ -170,7 +174,7 @@ end;
 procedure TDJMEdit.SetDecimalSeparator(const Value: char);
 begin
   FDecimalSeparator := Value;
-  if (EditType = etFloat) or (EditType = etFloatRounded) or (EditType = etFloatRoundedEx) then begin
+  if (edittype in DJMEditTypeFloats) then begin
      FormatNumber;
   end;
 end;
@@ -178,7 +182,7 @@ end;
 procedure TDJMEdit.SetThousandSeparator(const Value: char);
 begin
   FThousandSeparator := Value;
-  if (EditType = etInteger) or (EditType = etFloat) or (EditType = etFloatRounded) or (EditType = etFloatRoundedEx) then begin
+  if (edittype in DJMEditTypeNumbers) then begin
      FormatNumber;
   end;
 end;
@@ -194,7 +198,7 @@ begin
   if FDecimals>15 then Exit; //maxima precision del tipo double
   
   FDecimals := Value;
-  if (EditType = etFloat) or (EditType = etFloatRounded) or (EditType = etFloatRoundedEx) or (EditType=etInteger) then begin
+  if (edittype in DJMEditTypeNumbers) then begin
      FormatNumber;
   end;
 end;
@@ -218,7 +222,7 @@ end;
 procedure TDJMEdit.Clear;
 begin
   inherited;
-  if (edittype in [etInteger,etFloat,etFloatRounded, etFloatRoundedEx]) then begin
+  if (edittype in DJMEditTypeNumbers) then begin
      ValueFloat:=0;
      ValueInteger:=0;
      FormatNumber;
@@ -365,8 +369,7 @@ begin
     end;
     }
   end;
-  if (FEditType = etFloat) or (FEditType = etFloatRounded) or (FEditType = etFloatRoundedEx) or
-     (FEditType = etInteger) then begin
+  if (edittype in DJMEditTypeNumbers) then begin
      if (FNumbersAlignRight) then begin
         self.Alignment := taRightJustify;
      end
@@ -437,7 +440,7 @@ begin
 
   if not lProcesado then begin
       if Ord(key) = 22 then begin //ctrl-v
-         if (EditType = etFloat) or (EditType = etFloatRounded) or (EditType = etFloatRoundedEx) or (EditType=etInteger) then begin
+         if (edittype in DJMEditTypeNumbers) then begin
             self.Clear;  //al pegar un nº, borramos automáticamente el nº existente asi el usuario no tiene q borrarlo con el raton
          end;
          lProcesado:=True;
@@ -530,8 +533,7 @@ begin
   Font.Color := FontColorOnNotFocus;
 
  //si teclean el signo negativo, lo ponemos al principio
-  if ((EditType = etInteger) or (EditType = etFloat) or (EditType = etFloatRounded) or
-     (EditType = etFloatRoundedEx)) and (Pos('-', Text) > 1) then begin
+  if (edittype in DJMEditTypeNumbers) and (Pos('-', Text) > 1) then begin
     if Length(Text) = Pos('-', Text) then
       Text := '-' + Copy(Text, 1, Pos('-', Text) - 1)
     else
@@ -539,8 +541,7 @@ begin
   end;
 
 //número, si nulo -> 0
-  if (editType = etFloat) or (EditType = etFloatRounded) or
-     (EditType = etFloatRoundedEx) then begin
+  if (edittype in DJMEditTypeFloats) then begin
     if trim(text) = '' then begin
       setFloat(0);
     end;
@@ -563,8 +564,7 @@ if (editType = etInteger) then begin
   end;
 
 //formato de floats
-if (EditType = etFloat) or (EditType = etFloatRounded) or
-     (EditType = etFloatRoundedEx) or (EditType = etInteger) then begin
+if (edittype in DJMEditTypeNumbers) then begin
    FormatNumber;
 end;
 
@@ -576,7 +576,7 @@ procedure TDJMEdit.FormatNumber;
 var
 myFormatSettings:TFormatSettings;
 begin
-  if (EditType = etfloat) or (EditType = etFloatRounded) or (EditType = etFloatRoundedEx) then begin
+  if (edittype in DJMEditTypeFloats) then begin
     if trim(text) <> '' then begin
         try
           Text:=DeleteFormat(Text);
@@ -655,8 +655,7 @@ procedure TDJMEdit.SetFloat(VFloat: double);
 var
 myFormatSettings:TFormatSettings;
 begin
-  if (EditType = etFloat) or (EditType = etFloatRounded) or
-     (EditType = etFloatRoundedEx) then begin
+  if (edittype in DJMEditTypeFloats) then begin
     Fvaluefloat := VFloat;
     //OJO! el floattostr corta a 15 caracteres, q es la máxima precisión del tipo double
     //0.1234567890123456789 lo deja como 0.123456789012346
@@ -827,7 +826,7 @@ begin
 
   //para deshacer el onchange utilizamos clearundo/undo :)
 
-  if ((EditType = etInteger) or (EditType = etFloat) or (EditType = etFloatRounded) or (EditType = etFloatRoundedEx)) and (Length(Text) > 0) then
+  if (EditType in DJMEditTypeNumbers) and (Length(Text) > 0) then
   begin
     // Si solo tenemos el signo negativo, daría error
     if (Pos('-', Text) = 1) and (Length(Text) = 1) then
@@ -862,8 +861,7 @@ begin
         FValueFloat := FValueInteger;
       end;
     end;
-    if (EditType = etFloat) or (EditType = etFloatRounded) or (EditType = etFloatRoundedEx) then
-    begin
+    if (edittype in DJMEditTypeFloats) then begin
       myFormatSettings.DecimalSeparator:=FDecimalSeparator;
       myFormatSettings.ThousandSeparator:=FThousandSeparator;
       if not TryStrToFloat(TxtConvert, mDummy, myFormatSettings) then
