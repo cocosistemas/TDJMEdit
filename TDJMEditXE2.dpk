@@ -37,6 +37,7 @@ requires
   xmlrtl;
 
 contains
-  uTDJMEdit in 'uTDJMEdit.pas';
+  uTDJMEdit in 'uTDJMEdit.pas',
+  uTDJMEditButton in 'uTDJMEditButton.pas';
 
 end.

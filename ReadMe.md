@@ -1,4 +1,6 @@
-# Componente para Delphi VCL: TDJMEdit
+# Componentes para Delphi VCL: TDJMEdit y TDJMEditButton
+
+# TDJMEdit
 
 ![captura del programa demo](img/capTest001.JPG)
 
@@ -116,3 +118,8 @@ En el caso de que los colores no sean de tu gusto, los separadores... etc, no va
 
 > por favor, si vas a modificar algo, hazme un pull request, no es necesario que hagas un fork. Si puedo incorporar tus sugerencias, lo haré. Y para los bugs, abres un issue :)
 
+# DJMEditButton
+
+Es el mismo edit, pero además tiene un speedbutton asociado. Podemos definir el tipo de imagen que aparecerá en el botón (lupa, carpeta, etc). Dispone de un evento OnClickButton donde podremos actuar en consecuencia. Muy útil para botones de búsqueda, seleccionar directorios, abrir ventanas modales de petición de datos.. cosas así.
+
+![](img/capEditButton.JPG)
