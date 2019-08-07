@@ -70,6 +70,8 @@ etInteger y todos los etFloat* tienen formato de números con los separadores de
 # obteniendo/asignando valores
 las propiedades *valueFloat, valueInteger, valueDate, valueTime* son las que debes utilizar para obtener/asignar los valores del Edit en tu programa. Mira la demo para ver como se utilizan. Para *etString* utiliza *text*, como siempre.
 
+Utiliza la función **isEmpty** para ver si hay un string vacío, una fecha nula o una hora vacía. Para números esto no tiene sentido (0 no es vacío, es cero, utiliza valueFloat o valueInteger para eso).
+
 # tecleando números y fechas
 
 El usuario no debe (ni puede) teclear los separadores, esto es:
