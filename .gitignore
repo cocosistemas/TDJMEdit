@@ -2,3 +2,7 @@ TestXE2/Win32
 TestBerlin/Win32
 *.identcache
 *.dsk
+TestDJMEditBerlin.dproj.local
+*.local
+TestBerlin/__history/*
+*.dcu
