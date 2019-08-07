@@ -13,6 +13,9 @@ Heredado de TEdit, sirve para:
 
 Se incluye paquetes para instalarlo en Delphi XE2 y para instalarlo en Delphi Berlin. Cualquier versión igual o superior a la XE2 no debe dar mayor problema. Con la versión Delphi 7 no funciona (tiene cosas del lenguaje que Delphi 7 no tiene)
 
+# La demo
+Los proyectos de test crean los componentes en tiempo de ejecución, así que puedes probarlo sin necesidad de instalar el componente. Son los proyectos de los directorios *TestBerlin* y *TestXE2*
+
 # Características y propiedades
 
 # editType
