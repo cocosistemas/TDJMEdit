@@ -8,3 +8,5 @@ TestBerlin/__history/*
 *.dcu
 *.stat
 __history/*
+TestAlexandria/__history
+TestAlexandria/Win32
