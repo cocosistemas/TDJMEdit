@@ -83,7 +83,20 @@ type
     BTAceptar: TButton;
     btCancelar: TButton;
 
+    FiAssociatedValue : Integer;
+    FsTableName : string;
+    FsFieldName : string;
+
+    FInsideHelpActive: Boolean;
+    FInsideHelpText  : String;
+    FInsideHelpFont  : TFont;
+
     procedure EMSetReadOnly(var msg: TMessage); message EM_SETREADONLY;
+
+    procedure SetInsideHelpActive(const Value: Boolean);
+    procedure SetInsideHelpText(const Value: String);
+    procedure SetInsideHelpFont(const Value: TFont);
+    procedure InsideHelpFontChange(Sender: TObject);
 
     procedure setDecimals(const Value: integer);
 
@@ -96,6 +109,7 @@ type
     procedure SetDecimalSeparator(const Value: char);
     procedure SetThousandSeparator(const Value: char);
     function ValidateNumbers(var sError:string):boolean;
+    procedure WMPaint(var Message: TWMPaint); message WM_PAINT;
 
   protected
     {Protected declarations}
@@ -116,6 +130,7 @@ type
     procedure SetFloat(VFloat: double);
     procedure SetDate(dFecha: TDatetime);
   public
+    destructor Destroy; override;
     procedure KeyPress(var Key: Char); override;
     procedure DoEnter; override;
     procedure DoExit; override;
@@ -155,6 +170,31 @@ type
     property ThousandSeparator : char read FThousandSeparator write SetThousandSeparator;
     property CurrencySymbol : char read FCurrencySymbol write SetCurrencySymbol;
     property Decimals : integer read FDecimals write setDecimals;
+    /// <summary>
+    /// por si necesitamos asociar un nº entero a este edit (ejemplo, nombre, nº agenda)
+    /// </summary>
+    property iAssociatedValue:integer read FiAssociatedValue write FiAssociatedValue;
+    /// <summary>
+    /// posible tabla asociada al edit
+    /// </summary>
+    property TableName:string read FsTableName write FsTableName;
+    /// <summary>
+    /// posible campo asociado al edit
+    /// </summary>
+    property FieldName:string read FsFieldName write FsFieldName;
+
+    /// <summary>
+    /// Permite definir el texto de ayuda.
+    /// </summary>
+    property InsideHelpText:String read FInsideHelpText write SetInsideHelpText;
+    /// <summary>
+    /// Permite activar la característica de ayuda interior.
+    /// </summary>
+    property InsideHelpActive:Boolean read FInsideHelpActive write SetInsideHelpActive;
+    /// <summary>
+    /// Permite definir la letra de la ayuda interior
+    /// </summary>
+    property InsideHelpFont : TFont read FInsideHelpFont write SetInsideHelpFont;
   end;
 
 const
@@ -235,6 +275,7 @@ begin
   if (EditType = etTime) then begin
      ValueTime:=0;
   end;
+  FiAssociatedValue:=0;
 end;
 
 constructor TDJMEdit.Create(AOwner: TComponent);
@@ -266,6 +307,19 @@ begin
   FShowSecondsInTime := False;
   FValueDate := 0;
   FValueTime := Time;
+
+  Self.FInsideHelpActive := False;
+  Self.FInsideHelpText   := Self.FInsideHelpText;
+
+  FiAssociatedValue   := 0;
+  FsTableName:='';
+  FsFieldName:='';
+
+  FInsideHelpFont        := TFont.Create;
+  FInsideHelpFont.Name   := 'Arial';
+  FInsideHelpFont.Color  := clGray;
+
+  FInsideHelpFont.OnChange := InsideHelpFontChange;
 end;
 
 procedure TDJMEdit.CreateCalendarWindow;
@@ -506,6 +560,12 @@ begin
    end;
 end;
 
+destructor TDJMEdit.Destroy;
+begin
+  FInsideHelpFont.Free;
+  inherited;
+end;
+
 procedure TDJMEdit.DoEnter;
 begin
 
@@ -513,6 +573,13 @@ begin
 
   //quitamos formato
   Text:=DeleteFormat(text);
+
+  //al hacer focus si tenemos el 0 molesta, siempre habria q borrarlo para teclear el nº
+  if (EditType = etFloat ) and (trim(Text)='0') then
+  begin
+     text:='';
+  end;
+
 
   Color := ColorOnFocus;
   Font.Color := FontColorOnFocus;
@@ -988,6 +1055,11 @@ if key=VK_F8
 then FormCalendarbtCancelarclick(sender);
 end;
 
+procedure TDJMEdit.InsideHelpFontChange(Sender: TObject);
+begin
+
+end;
+
 function TDJMEdit.isEmpty: Boolean;
 begin
   if (EditType = etDate) then begin
@@ -1008,6 +1080,47 @@ end;
 function TDJMEdit.valueIntegerAsStr;
 begin
   Result := IntToStr(self.ValueInteger);
+end;
+
+procedure TDJMEdit.SetInsideHelpActive(const Value: Boolean);
+begin
+Self.FInsideHelpActive := Value;
+Self.Repaint;
+end;
+
+procedure TDJMEdit.SetInsideHelpFont(const Value: TFont);
+begin
+FInsideHelpFont.Assign(Value);
+Repaint;
+end;
+
+procedure TDJMEdit.SetInsideHelpText(const Value: String);
+begin
+ Self.FInsideHelpText := Value;
+ Repaint;
+end;
+
+procedure TDJMEdit.WMPaint(var Message: TWMPaint);
+var
+  MCanvas: TControlCanvas;
+begin
+  if (Self.Text <> '') or (not Self.FInsideHelpActive) then begin
+    inherited;
+    Exit;
+  end;
+
+  inherited;
+
+  MCanvas := TControlCanvas.Create;
+
+  try
+    MCanvas.Control := Self;
+    MCanvas.Brush.Color := Self.Color;
+    MCanvas.Font := Self.FInsideHelpFont;
+    MCanvas.TextOut(2,2, Self.FInsideHelpText);
+  finally
+    MCanvas.Free;
+  end;
 end;
 
 begin

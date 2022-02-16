@@ -112,6 +112,11 @@ Esta propiedad indica que los etFloat* y etInteger están alineados a la derecha
 
 El símbolo *de moneda*. Se puede dejar en blanco y entonces no se utilizará.
 
+
+# 2022-02-16 nuevo!
+Ahora tenemos la posibilidad de indicarle un insidehelp (e insideHelpActive). Es un texto que se muestra en el edit cuando no tiene contenido.
+Por ejemplo: 'Introduzca aquí un nombre de empresa'
+
 # personalizar
 
 En el caso de que los colores no sean de tu gusto, los separadores... etc, no vayas modificando cada uno de los TDJMEdit de tu proyecto, pueden llegar a ser muchos. Te aconsejo que te hagas tu propio componente, heredado de este, y en el constructor le pongas tu personalización. Creo que esa es la forma correcta de hacerlo.
